@@ -1,46 +1,68 @@
 import React, { useState } from 'react'
-import ProductList from './components/ProductList'
+import ProductList, { sampleProducts } from './components/ProductList'
 import DarkModeToggle from './components/DarkModeToggle'
 import Cart from './components/Cart'
-import { sampleProducts } from './components/ProductList'
 
 const App = () => {
-  const [isDarkMode, setIsDarkMode] = useState(false)
-  const [cart, setCart] = useState([])
+  const [darkMode, setDarkMode] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState('all')
+  const [cartItems, setCartItems] = useState([])
 
-  const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode)
+  const handleToggleDarkMode = () => {
+    setDarkMode((current) => !current)
   }
 
-  const addToCart = (product) => {
-    setCart([...cart, product])
+  const handleCategoryChange = (event) => {
+    setSelectedCategory(event.target.value)
   }
 
-  const filteredProducts = selectedCategory === 'all' 
-    ? sampleProducts 
-    : sampleProducts.filter(product => product.category === selectedCategory)
+  const handleAddToCart = (product) => {
+    setCartItems((currentItems) => {
+      if (currentItems.some((item) => item.id === product.id)) {
+        return currentItems
+      }
+      return [...currentItems, product]
+    })
+  }
+
+  const visibleProducts = sampleProducts.filter((product) => {
+    if (selectedCategory === 'all') return true
+    return product.category === selectedCategory
+  })
 
   return (
-    <div className={isDarkMode ? 'dark' : 'light'}>
+    <div
+      style={{
+        minHeight: '100vh',
+        backgroundColor: darkMode ? '#111' : '#ffffff',
+        color: darkMode ? '#f4f4f4' : '#111111',
+        padding: '2rem'
+      }}
+    >
       <h1>🛒 Shopping App</h1>
       <p>
         Welcome! Your task is to implement filtering, cart management, and dark
         mode.
       </p>
 
-      <DarkModeToggle isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
+      <DarkModeToggle darkMode={darkMode} toggleDarkMode={handleToggleDarkMode} />
 
-      <label>Filter by Category: </label>
-      <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
-        <option value="all">All</option>
-        <option value="Fruits">Fruits</option>
-        <option value="Dairy">Dairy</option>
-      </select>
+      <div style={{ margin: '1.5rem 0' }}>
+        <label htmlFor="category-filter">Filter by Category: </label>
+        <select
+          id="category-filter"
+          value={selectedCategory}
+          onChange={handleCategoryChange}
+        >
+          <option value="all">All</option>
+          <option value="Fruits">Fruits</option>
+          <option value="Dairy">Dairy</option>
+        </select>
+      </div>
 
-      <ProductList products={filteredProducts} addToCart={addToCart} />
+      <ProductList products={visibleProducts} onAddToCart={handleAddToCart} />
 
-      <Cart cart={cart} />
+      <Cart items={cartItems} />
     </div>
   )
 }
